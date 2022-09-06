@@ -25,12 +25,12 @@ type delivery struct {
 	getConfig func() (*configuration, error)
 }
 
-func (c *delivery) wait() {
-	c.wg.Wait()
+func (d *delivery) wait() {
+	d.wg.Wait()
 }
 
-func (c *delivery) getTopic(owner, repo, event string) string {
-	if cfg, err := c.getConfig(); err == nil {
+func (d *delivery) getTopic(owner, repo, event string) string {
+	if cfg, err := d.getConfig(); err == nil {
 		if v := cfg.configFor(owner, repo); v != nil {
 			return v.getTopic(event)
 		}
@@ -40,8 +40,8 @@ func (c *delivery) getTopic(owner, repo, event string) string {
 }
 
 // ServeHTTP validates an incoming webhook and puts it into the event channel.
-func (c *delivery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	eventType, eventGUID, _, payload, ok, _ := gitlabclient.ValidateWebhook(w, r, c.hmac)
+func (d *delivery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	eventType, eventGUID, _, payload, ok, _ := gitlabclient.ValidateWebhook(w, r, d.hmac)
 	if !ok {
 		return
 	}
@@ -57,7 +57,7 @@ func (c *delivery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch eventType {
 	case string(gitlab.EventTypeSystemHook):
-		if err := c.deliverySystemHook(payload, r.Header, l); err != nil {
+		if err := d.deliverySystemHook(payload, r.Header, l); err != nil {
 			l.Error(err.Error())
 		}
 	}
@@ -71,14 +71,14 @@ type eventBody struct {
 	} `json:"project"`
 }
 
-func (c *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.Entry) error {
+func (d *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.Entry) error {
 	e := new(eventBody)
 	if err := json.Unmarshal(payload, e); err != nil {
 		return err
 	}
 
 	kind := strings.ToLower(e.ObjectKind)
-	topic := c.getTopic(e.Project.Owner, e.Project.Repo, kind)
+	topic := d.getTopic(e.Project.Owner, e.Project.Repo, kind)
 	if topic == "" {
 		return errors.New("no match topic")
 	}
@@ -96,9 +96,9 @@ func (c *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.E
 		Body:   payload,
 	}
 
-	c.wg.Add(1)
+	d.wg.Add(1)
 	go func() {
-		defer c.wg.Done()
+		defer d.wg.Done()
 
 		if err := kafka.Publish(topic, &msg); err != nil {
 			l.Errorf("failed to publish msg, err:%v", err)
