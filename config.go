@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 
-	"github.com/opensourceways/community-robot-lib/config"
 	"github.com/xanzy/go-gitlab"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -16,25 +15,11 @@ var (
 )
 
 type configuration struct {
-	ConfigItems []botConfig `json:"config_items,omitempty"`
+	Default botConfig `json:"default,omitempty"`
 }
 
 func (c *configuration) configFor(org, repo string) *botConfig {
-	if c == nil {
-		return nil
-	}
-
-	items := c.ConfigItems
-	v := make([]config.IRepoFilter, len(items))
-	for i := range items {
-		v[i] = &items[i]
-	}
-
-	if i := config.Find(org, repo, v); i >= 0 {
-		return &items[i]
-	}
-
-	return nil
+	return &c.Default
 }
 
 func (c *configuration) Validate() error {
@@ -42,14 +27,7 @@ func (c *configuration) Validate() error {
 		return nil
 	}
 
-	items := c.ConfigItems
-	for i := range items {
-		if err := items[i].validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return c.Default.validate()
 }
 
 func (c *configuration) SetDefault() {
@@ -57,15 +35,10 @@ func (c *configuration) SetDefault() {
 		return
 	}
 
-	Items := c.ConfigItems
-	for i := range Items {
-		Items[i].setDefault()
-	}
+	c.Default.setDefault()
 }
 
 type botConfig struct {
-	config.RepoFilter
-
 	SystemHookEvents []string `json:"system_hook"`
 	WebHookEvents    []string `json:"webhook"`
 	Topic            string   `json:"topic" required:"true"`
@@ -101,7 +74,7 @@ func (c *botConfig) validate() error {
 		}
 	}
 
-	return c.RepoFilter.Validate()
+	return nil
 }
 
 func (c *botConfig) setDefault() {
