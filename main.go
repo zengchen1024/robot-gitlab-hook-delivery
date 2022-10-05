@@ -3,9 +3,12 @@ package main
 import (
 	"errors"
 	"flag"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/opensourceways/community-robot-lib/config"
@@ -143,17 +146,44 @@ func connetKafka(cfg *mq.MQConfig) error {
 }
 
 func loadKafkaConfig(file string) (cfg mq.MQConfig, err error) {
-	if err = utils.LoadFromYaml(file, &cfg); err != nil {
+	v, err := ioutil.ReadFile(file)
+	if err != nil {
 		return
 	}
 
-	if len(cfg.Addresses) == 0 {
+	str := string(v)
+	if str == "" {
 		err = errors.New("missing addresses")
 
 		return
 	}
 
-	err = kafka.ValidateConnectingAddress(cfg.Addresses)
+	addresses := parseAddress(str)
+	if len(addresses) == 0 {
+		err = errors.New("no valid address for kafka")
+
+		return
+	}
+
+	if err = kafka.ValidateConnectingAddress(addresses); err != nil {
+		return
+	}
+
+	cfg.Addresses = addresses
 
 	return
+}
+
+func parseAddress(addresses string) []string {
+	var reIpPort = regexp.MustCompile(`^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:[1-9][0-9]*$`)
+
+	v := strings.Split(addresses, ",")
+	r := make([]string, 0, len(v))
+	for i := range v {
+		if reIpPort.MatchString(v[i]) {
+			r = append(r, v[i])
+		}
+	}
+
+	return r
 }
