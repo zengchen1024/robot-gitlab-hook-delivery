@@ -18,7 +18,6 @@ import (
 	"github.com/opensourceways/community-robot-lib/mq"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	"github.com/opensourceways/community-robot-lib/secret"
-	"github.com/opensourceways/community-robot-lib/utils"
 	"github.com/sirupsen/logrus"
 )
 
