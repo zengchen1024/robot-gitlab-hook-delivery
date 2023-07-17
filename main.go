@@ -33,7 +33,7 @@ func (o *options) Validate() error {
 	return o.service.Validate()
 }
 
-func gatherOptions(fs *flag.FlagSet, args ...string) options {
+func gatherOptions(fs *flag.FlagSet, args ...string) (options, error) {
 	var o options
 
 	o.service.AddFlags(fs)
@@ -48,14 +48,22 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 		"Path to the file containing config of kafkamq.",
 	)
 
-	fs.Parse(args)
-	return o
+	err := fs.Parse(args)
+
+	return o, err
 }
 
 func main() {
 	logrusutil.ComponentInit(component)
 
-	o := gatherOptions(flag.NewFlagSet(os.Args[0], flag.ExitOnError), os.Args[1:]...)
+	o, err := gatherOptions(
+		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
+		os.Args[1:]...,
+	)
+	if err != nil {
+		logrus.Fatalf("new options failed, err:%s", err.Error())
+	}
+	
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
