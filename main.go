@@ -66,6 +66,10 @@ func main() {
 		logrus.Fatalf("Error loading kfk config, err:%v", err)
 	}
 
+	if err := os.Remove(o.kafkamqConfigFile); err != nil {
+		logrus.Fatalf("mq config file delete failed, err:%s", err.Error())
+	}
+
 	if err := connetKafka(&kafkaCfg); err != nil {
 		logrus.Fatalf("Error connecting kfk mq, err:%v", err)
 	}
@@ -78,6 +82,10 @@ func main() {
 	})
 	if err := configAgent.Start(o.service.ConfigFile); err != nil {
 		logrus.WithError(err).Fatal("Error starting config agent.")
+	}
+
+	if err := os.Remove(o.service.ConfigFile); err != nil {
+		logrus.Fatalf("config file delete failed, err:%s", err.Error())
 	}
 
 	defer configAgent.Stop()
