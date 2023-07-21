@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"io/ioutil"
@@ -129,7 +130,7 @@ func readHmac(f string) (string, error) {
 		return "", err2
 	}
 
-	return strings.TrimSuffix(string(v), "\n"), nil
+	return string(bytes.TrimSpace(v)), nil
 }
 
 func run(d *delivery, port int, gracePeriod time.Duration) {
