@@ -11,13 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/opensourceways/community-robot-lib/config"
 	"github.com/opensourceways/community-robot-lib/interrupts"
 	"github.com/opensourceways/community-robot-lib/kafka"
 	"github.com/opensourceways/community-robot-lib/logrusutil"
 	"github.com/opensourceways/community-robot-lib/mq"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
-	"github.com/opensourceways/community-robot-lib/secret"
 	"github.com/sirupsen/logrus"
 )
 
@@ -63,7 +61,7 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("new options failed, err:%s", err.Error())
 	}
-	
+
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
@@ -74,10 +72,6 @@ func main() {
 		logrus.Fatalf("Error loading kfk config, err:%v", err)
 	}
 
-	if err := os.Remove(o.kafkamqConfigFile); err != nil {
-		logrus.Fatalf("mq config file delete failed, err:%s", err.Error())
-	}
-
 	if err := connetKafka(&kafkaCfg); err != nil {
 		logrus.Fatalf("Error connecting kfk mq, err:%v", err)
 	}
@@ -85,37 +79,24 @@ func main() {
 	defer kafka.Disconnect()
 
 	// load config
-	configAgent := config.NewConfigAgent(func() config.Config {
-		return new(configuration)
-	})
-	if err := LoadFromYaml(o.service.ConfigFile, &configAgent); err != nil {
-		logrus.WithError(err).Fatal("Error starting config agent")
-	}
-	if err := os.Remove(o.service.ConfigFile); err != nil {
-		logrus.Fatalf("config file delete failed, err:%s", err.Error())
+	config, err := loadConfig(o.service.ConfigFile)
+	if err != nil {
+		logrus.Fatalf("read config failed, err:%s", err.Error())
 	}
 
 	// load hmac
-	secretAgent := new(secret.Agent)
-	if err := secretAgent.Start([]string{o.hmacSecretFile}); err != nil {
-		logrus.WithError(err).Fatal("Error starting secret agent.")
+	hmac, err := readHmac(o.hmacSecretFile)
+	if err != nil {
+		logrus.Fatalf("read hmac failed, err:%s", err.Error())
 	}
 
-	defer secretAgent.Stop()
-
 	// init delivery
-	gethmac := secretAgent.GetTokenGenerator(o.hmacSecretFile)
 	d := delivery{
 		hmac: func() string {
-			return string(gethmac())
+			return hmac
 		},
 		getConfig: func() (*configuration, error) {
-			_, cfg := configAgent.GetConfig()
-			if c, ok := cfg.(*configuration); ok {
-				return c, nil
-			}
-
-			return nil, errors.New("can't convert to configuration")
+			return &config, nil
 		},
 	}
 
@@ -123,6 +104,32 @@ func main() {
 
 	// run
 	run(&d, o.service.Port, o.service.GracePeriod)
+}
+
+func loadConfig(f string) (configuration, error) {
+	cfg := configuration{}
+	err := LoadFromYaml(f, &cfg)
+	err1 := os.Remove(f)
+
+	if err2 := MultiErrors(err, err1); err2 != nil {
+		return cfg, err2
+	}
+
+	cfg.SetDefault()
+	err = cfg.Validate()
+
+	return cfg, err
+}
+
+func readHmac(f string) (string, error) {
+	v, err := ioutil.ReadFile(f)
+	err1 := os.Remove(f)
+
+	if err2 := MultiErrors(err, err1); err2 != nil {
+		return "", err2
+	}
+
+	return string(v), nil
 }
 
 func run(d *delivery, port int, gracePeriod time.Duration) {
@@ -159,7 +166,9 @@ func connetKafka(cfg *mq.MQConfig) error {
 
 func loadKafkaConfig(file string) (cfg mq.MQConfig, err error) {
 	v, err := ioutil.ReadFile(file)
-	if err != nil {
+	err1 := os.Remove(file)
+
+	if err = MultiErrors(err, err1); err != nil {
 		return
 	}
 
