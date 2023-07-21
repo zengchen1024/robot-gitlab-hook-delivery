@@ -88,15 +88,12 @@ func main() {
 	configAgent := config.NewConfigAgent(func() config.Config {
 		return new(configuration)
 	})
-	if err := configAgent.Start(o.service.ConfigFile); err != nil {
-		logrus.WithError(err).Fatal("Error starting config agent.")
+	if err := LoadFromYaml(o.service.ConfigFile, &configAgent); err != nil {
+		logrus.WithError(err).Fatal("Error starting config agent")
 	}
-
 	if err := os.Remove(o.service.ConfigFile); err != nil {
 		logrus.Fatalf("config file delete failed, err:%s", err.Error())
 	}
-
-	defer configAgent.Stop()
 
 	// load hmac
 	secretAgent := new(secret.Agent)

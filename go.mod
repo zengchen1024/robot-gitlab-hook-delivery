@@ -6,6 +6,7 @@ require (
 	github.com/opensourceways/community-robot-lib v0.0.0-20220928120519-b3196c107697
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xanzy/go-gitlab v0.73.1
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.25.3
 )
 
@@ -39,6 +40,5 @@ require (
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
