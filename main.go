@@ -90,7 +90,7 @@ func main() {
 		logrus.Fatalf("read hmac failed, err:%s", err.Error())
 	}
 
-	logrus.Info("hmac = %s", hmac)
+	logrus.Infof("hmac = %s.", hmac)
 
 	// init delivery
 	d := delivery{
