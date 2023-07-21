@@ -90,8 +90,6 @@ func main() {
 		logrus.Fatalf("read hmac failed, err:%s", err.Error())
 	}
 
-	logrus.Infof("hmac = %s.", hmac)
-
 	// init delivery
 	d := delivery{
 		hmac: func() string {
@@ -131,7 +129,7 @@ func readHmac(f string) (string, error) {
 		return "", err2
 	}
 
-	return string(v), nil
+	return strings.TrimSuffix(string(v), "\n"), nil
 }
 
 func run(d *delivery, port int, gracePeriod time.Duration) {
