@@ -7,6 +7,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xanzy/go-gitlab v0.73.1
 	k8s.io/apimachinery v0.25.3
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -40,5 +41,4 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
