@@ -1,4 +1,7 @@
-FROM golang:latest as BUILDER
+FROM openeuler/openeuler:23.03 as BUILDER
+RUN dnf update -y && \
+    dnf install -y golang && \
+    go env -w GOPROXY=https://goproxy.cn,direct
 
 MAINTAINER zengchen1024<chenzeng765@gmail.com>
 
@@ -8,12 +11,16 @@ COPY . .
 RUN GO111MODULE=on CGO_ENABLED=0 go build -a -o robot-gitlab-hook-delivery .
 
 # copy binary config and utils
-FROM alpine:3.14
+FROM openeuler/openeuler:22.03
+RUN dnf -y update && \
+    dnf in -y shadow && \
+    groupadd -g 5000 mindspore && \
+    useradd -u 5000 -g mindspore -s /bin/bash -m mindspore
 
-RUN adduser mindspore -u 5000 -D
 USER mindspore
+
 WORKDIR /opt/app/
 
-COPY  --from=BUILDER /go/src/github.com/opensourceways/robot-gitlab-hook-delivery/robot-gitlab-hook-delivery /opt/app/robot-gitlab-hook-delivery
+COPY  --chown=mindspore --from=BUILDER /go/src/github.com/opensourceways/robot-gitlab-hook-delivery/robot-gitlab-hook-delivery /opt/app/robot-gitlab-hook-delivery
 
 ENTRYPOINT ["/opt/app/robot-gitlab-hook-delivery"]
