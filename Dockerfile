@@ -8,7 +8,7 @@ MAINTAINER zengchen1024<chenzeng765@gmail.com>
 # build binary
 WORKDIR /go/src/github.com/opensourceways/robot-gitlab-hook-delivery
 COPY . .
-RUN GO111MODULE=on CGO_ENABLED=0 go build -a -o robot-gitlab-hook-delivery .
+RUN GO111MODULE=on CGO_ENABLED=0 go build -buildmode=pie --ldflags "-s -linkmode 'external' -extldflags '-Wl,-z,now'" -a -o robot-gitlab-hook-delivery .
 
 # copy binary config and utils
 FROM openeuler/openeuler:22.03
