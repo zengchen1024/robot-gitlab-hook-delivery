@@ -267,8 +267,8 @@ github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
 github.com/onsi/gomega v1.19.0/go.mod h1:LY+I3pBVzYsTBU1AnDwOSxaYi9WoWiqgwooUqq9yPro=
 github.com/onsi/gomega v1.20.1/go.mod h1:DtrZpjmvpn2mPm4YWQa0/ALMDj9v4YxLgojwPeREyVo=
-github.com/opensourceways/community-robot-lib v0.0.0-20231017091742-fe8b59249e0c h1:g46hk2crO2GzGHibrNNoX8Q8tJJKOnKhLClx1L708Ow=
-github.com/opensourceways/community-robot-lib v0.0.0-20231017091742-fe8b59249e0c/go.mod h1:+w7vJbhHBkybUDoaYOI8Gn8AEVmaHyO0LaoaIdCtewI=
+github.com/opensourceways/community-robot-lib v0.0.0-20231018034126-a664e14dbb9d h1:g/i5rlWzEDeSxbcf8zlzYB5m/tManw5ZLfwnM8obi+c=
+github.com/opensourceways/community-robot-lib v0.0.0-20231018034126-a664e14dbb9d/go.mod h1:LlcEXB8B167NgeE8klLcztmg8oeGHJNEeZGv7xmxxFU=
 github.com/opensourceways/go-gitee v0.0.0-20231017075452-8c3dcc460ed2/go.mod h1:davbfHJ2gG4YY3cnsiWzG6VUptVWIFi+ltNldgmgySQ=
 github.com/pierrec/lz4/v4 v4.1.14/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pierrec/lz4/v4 v4.1.18 h1:xaKrnTkyoqfh1YItXl56+6KJNVYWlEEPuAQW9xsplYQ=

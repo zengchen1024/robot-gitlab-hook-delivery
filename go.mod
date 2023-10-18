@@ -3,7 +3,7 @@ module github.com/opensourceways/xihe-gitlab-hook-delivery
 go 1.18
 
 require (
-	github.com/opensourceways/community-robot-lib v0.0.0-20231017091742-fe8b59249e0c
+	github.com/opensourceways/community-robot-lib v0.0.0-20231018034126-a664e14dbb9d
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xanzy/go-gitlab v0.73.1
 	k8s.io/apimachinery v0.25.3
