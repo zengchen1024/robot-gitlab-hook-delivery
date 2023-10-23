@@ -3,17 +3,15 @@ package main
 import (
 	"errors"
 
-	"k8s.io/apimachinery/pkg/util/sets"
+	"github.com/opensourceways/xihe-gitlab-hook-delivery/kafka"
 )
 
 const systemHookEventPush = "push"
 
-var (
-	systemHookEventTypes = sets.NewString(systemHookEventPush)
-)
-
 type configuration struct {
-	Default botConfig `json:"default,omitempty"`
+	Default botConfig    `json:"default,omitempty"`
+	Kafka   kafka.Config `json:"kafka" required:"true"`
+	HMAC    string       `json:"hmac"  required:"true"`
 }
 
 func (c *configuration) configFor(org, repo string) *botConfig {
@@ -25,6 +23,10 @@ func (c *configuration) Validate() error {
 		return nil
 	}
 
+	if err := c.Kafka.Validate(); err != nil {
+		return err
+	}
+
 	return c.Default.validate()
 }
 
@@ -34,16 +36,17 @@ func (c *configuration) SetDefault() {
 	}
 
 	c.Default.setDefault()
+
+	c.Kafka.SetDefault()
 }
 
 type botConfig struct {
-	SystemHookEvents []string `json:"system_hook"`
-	Topic            string   `json:"topic" required:"true"`
-	events           sets.String
+	Topic  string `json:"topic" required:"true"`
+	events map[string]bool
 }
 
 func (c *botConfig) getTopic(event string) string {
-	if c.events.Has(event) {
+	if c.events[event] {
 		return c.Topic
 	}
 
@@ -55,19 +58,9 @@ func (c *botConfig) validate() error {
 		return errors.New("missing topic")
 	}
 
-	if len(c.SystemHookEvents) == 0 {
-		return errors.New("missing system_hook")
-	}
-
-	if !systemHookEventTypes.HasAll(c.SystemHookEvents...) {
-		return errors.New("includes invalid system hook events")
-	}
-
 	return nil
 }
 
 func (c *botConfig) setDefault() {
-	if len(c.SystemHookEvents) > 0 {
-		c.events = sets.NewString(c.SystemHookEvents...)
-	}
+	c.events = map[string]bool{systemHookEventPush: true}
 }

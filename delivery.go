@@ -8,11 +8,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/opensourceways/community-robot-lib/gitlabclient"
-	"github.com/opensourceways/community-robot-lib/kafka"
-	"github.com/opensourceways/community-robot-lib/mq"
+	"github.com/opensourceways/robot-gitlab-lib/client"
 	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
+
+	"github.com/opensourceways/xihe-gitlab-hook-delivery/kafka"
 )
 
 var systemHookMap = map[string]string{
@@ -41,7 +41,7 @@ func (d *delivery) getTopic(owner, repo, event string) string {
 
 // ServeHTTP validates an incoming webhook and puts it into the event channel.
 func (d *delivery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	eventType, eventGUID, _, payload, ok, _ := gitlabclient.ValidateWebhook(w, r, d.hmac)
+	eventType, eventGUID, _, payload, ok, _ := client.ValidateWebhook(w, r, d.hmac)
 	if !ok {
 		return
 	}
@@ -91,16 +91,11 @@ func (d *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.E
 		"User-Agent":          "Robot-Gitlab-Hook-Delivery",
 	}
 
-	msg := mq.Message{
-		Header: header,
-		Body:   payload,
-	}
-
 	d.wg.Add(1)
 	go func() {
 		defer d.wg.Done()
 
-		if err := kafka.Publish(topic, &msg); err != nil {
+		if err := kafka.Publish(topic, header, payload); err != nil {
 			l.Errorf("failed to publish msg, err:%v", err)
 		} else {
 			l.Infof("publish to topic of %s successfully", topic)
