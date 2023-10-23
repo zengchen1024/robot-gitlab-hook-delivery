@@ -9,18 +9,22 @@ import (
 const systemHookEventPush = "push"
 
 type configuration struct {
-	Default botConfig    `json:"default,omitempty"`
-	Kafka   kafka.Config `json:"kafka" required:"true"`
 	HMAC    string       `json:"hmac"  required:"true"`
+	Kafka   kafka.Config `json:"kafka" required:"true"`
+	Default botConfig    `json:"default,omitempty"`
 }
 
-func (c *configuration) configFor(org, repo string) *botConfig {
+func (c *configuration) configFor() *botConfig {
 	return &c.Default
 }
 
 func (c *configuration) Validate() error {
 	if c == nil {
 		return nil
+	}
+
+	if c.HMAC == "" {
+		return errors.New("missing hmac")
 	}
 
 	if err := c.Kafka.Validate(); err != nil {
@@ -35,18 +39,16 @@ func (c *configuration) SetDefault() {
 		return
 	}
 
-	c.Default.setDefault()
-
 	c.Kafka.SetDefault()
 }
 
+// botConfig
 type botConfig struct {
-	Topic  string `json:"topic" required:"true"`
-	events map[string]bool
+	Topic string `json:"topic" required:"true"`
 }
 
 func (c *botConfig) getTopic(event string) string {
-	if c.events[event] {
+	if event == systemHookEventPush {
 		return c.Topic
 	}
 
@@ -59,8 +61,4 @@ func (c *botConfig) validate() error {
 	}
 
 	return nil
-}
-
-func (c *botConfig) setDefault() {
-	c.events = map[string]bool{systemHookEventPush: true}
 }

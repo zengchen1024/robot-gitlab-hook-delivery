@@ -29,9 +29,9 @@ func (d *delivery) wait() {
 	d.wg.Wait()
 }
 
-func (d *delivery) getTopic(owner, repo, event string) string {
+func (d *delivery) getTopic(event string) string {
 	if cfg, err := d.getConfig(); err == nil {
-		if v := cfg.configFor(owner, repo); v != nil {
+		if v := cfg.configFor(); v != nil {
 			return v.getTopic(event)
 		}
 	}
@@ -65,10 +65,6 @@ func (d *delivery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type eventBody struct {
 	ObjectKind string `json:"object_kind"`
-	Project    struct {
-		Repo  string `json:"name"`
-		Owner string `json:"namespace"`
-	} `json:"project"`
 }
 
 func (d *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.Entry) error {
@@ -77,8 +73,7 @@ func (d *delivery) deliverySystemHook(payload []byte, h http.Header, l *logrus.E
 		return err
 	}
 
-	kind := strings.ToLower(e.ObjectKind)
-	topic := d.getTopic(e.Project.Owner, e.Project.Repo, kind)
+	topic := d.getTopic(strings.ToLower(e.ObjectKind))
 	if topic == "" {
 		return errors.New("no match topic")
 	}

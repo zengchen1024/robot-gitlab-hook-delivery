@@ -21,5 +21,7 @@ func Init(cfg *Config, log mq.Logger) error {
 	return kfklib.Init(&cfg.Config, log, nil, "", true)
 }
 
-var Exit = kfklib.Exit
-var Publish = kfklib.Publish
+var (
+	Exit    = kfklib.Exit
+	Publish = kfklib.Publish
+)

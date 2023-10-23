@@ -5,7 +5,7 @@
 *.so
 *.dylib
 /bazel-*
-robot-gitlab-hook-delivery
+xihe-gitlab-hook-delivery
 
 # Test binary, built with `go test -c`
 *.test
